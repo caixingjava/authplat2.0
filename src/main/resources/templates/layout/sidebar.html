@@ -1,0 +1,94 @@
+<!DOCTYPE div >
+
+<div xmlns:th="http://www.thymeleaf.org" id="sidebar"
+	class="sidebar responsive ace-save-state" th:fragment="sidebar">
+	<script type="text/javascript">
+		try {
+			ace.settings.loadState('sidebar')
+		} catch (e) {
+		}
+	</script>
+
+	<ul class="nav nav-list" id="sys" style="display: none">
+		<li class=""><a href="#" class="dropdown-toggle"> <i
+				class="menu-icon fa fa-desktop"></i> <span class="menu-text">
+					系统管理 </span> <b class="arrow fa fa-angle-down"></b>
+		</a> <b class="arrow"></b>
+
+			<ul class="submenu">
+				<li class=""><a href="/sysinfo" class="pjax"> <i
+						class="menu-icon fa fa-caret-right"></i> 系统信息
+				</a> <b class="arrow"></b></li>
+				
+				<li class="" th:if="${#strings.equals(session.SPRING_SECURITY_CONTEXT.authentication.principal.authorities[0].authority, 'ROLE_ADMIN') or #strings.equals(session.SPRING_SECURITY_CONTEXT.authentication.principal.authorities[0].authority, 'ROLE_ROOT')}"><a href="/companies" class="pjax"> <i
+						class="menu-icon fa fa-caret-right"></i> 客戶管理
+				</a> <b class="arrow"></b></li>
+				
+				<li class=""><a href="/paymentSum" class="pjax"> <i
+						class="menu-icon fa fa-caret-right"></i> 授权管理
+				</a> <b class="arrow"></b></li>
+				
+				<li class=""><a href="/payments" class="pjax"> <i
+						class="menu-icon fa fa-caret-right"></i> 充值管理
+				</a> <b class="arrow"></b></li>
+
+				<li class=""><a href="/auth" class="pjax"> <i
+						class="menu-icon fa fa-caret-right"></i> 授权管理
+				</a> <b class="arrow"></b></li>
+				
+				<li class="" th:if="${#strings.equals(session.SPRING_SECURITY_CONTEXT.authentication.principal.authorities[0].authority, 'ROLE_ROOT')}"><a href="/operators" class="pjax"> <i
+						class="menu-icon fa fa-caret-right"></i> 操作人员管理
+				</a> <b class="arrow"></b></li>
+				
+				<li class="" th:if="${#strings.equals(session.SPRING_SECURITY_CONTEXT.authentication.principal.authorities[0].authority, 'ROLE_ADMIN') or #strings.equals(session.SPRING_SECURITY_CONTEXT.authentication.principal.authorities[0].authority, 'ROLE_ROOT')}"><a href="/oplogs" class="pjax"> <i
+						class="menu-icon fa fa-caret-right"></i> 操作日志管理
+				</a> <b class="arrow"></b></li>
+			</ul></li>
+	</ul>
+
+	<div class="sidebar-toggle sidebar-collapse" id="sidebar-collapse">
+		<i id="sidebar-toggle-icon"
+			class="ace-icon fa fa-angle-double-left ace-save-state"
+			data-icon1="ace-icon fa fa-angle-double-left"
+			data-icon2="ace-icon fa fa-angle-double-right"></i>
+	</div>
+	<script>
+		function refresh_nav(url) {
+			var url = url || window.location.pathname;
+			$("#sidebar ul.nav").hide();
+			$("#sidebar ul.nav.nav-list").find("a").each(
+					function() {
+						if (url.startWith($(this).attr('href'))) {
+							$(this).parent('li').parents('ul.nav').show();
+
+							$('#sidebar ul.submenu').parent('li').removeClass(
+									'open');
+							$('#sidebar ul.nav-show').removeClass('nav-show')
+									.addClass('nav-hide').hide();
+
+							$(this).parent('li').parents('ul.submenu').parent(
+									'li').addClass('open');
+							$(this).parent('li').parent('ul.nav-hide')
+									.removeClass('nav-hide').addClass(
+											'nav-show').show();
+
+							$('#sidebar ul.nav li.active')
+									.removeClass('active');
+
+							$(this).parent('li').addClass("active");
+							return false;
+						}
+					});
+
+		}
+
+		$(function() {
+			refresh_nav();
+
+			$("ul.nav.nav-list li a:not([href^='#'])").click(function() {
+				$('ul.nav.nav-list li.active').removeClass('active');
+				$(this).parent('li').addClass('active');
+			});
+		})
+	</script>
+</div>

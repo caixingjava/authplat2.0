@@ -1,0 +1,266 @@
+<html xmlns:th="http://www.thymeleaf.org"
+	xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+	layout:decorate="layout/layout">
+<div layout:fragment="sidebar" th:replace="layout/sidebar"></div>
+<div layout:fragment="content" th:fragment="content">
+	<div class="page-header">
+		<h1>操作人员管理</h1>
+	</div>
+	<div class="table-header">操作人员列表</div>
+	<div id="toolbar">
+		<div class="dt-buttons btn-overlap btn-group">
+			<a class="dt-button btn btn-white btn-primary btn-bold" tabindex="0"
+				aria-controls="dynamic-table" href="#" data-original-title=""
+				title=""> <span><i class="fa fa-plus bigger-110 green"></i>
+					<span class="hidden">新增操作人员</span></span>
+			</a> <a class="dt-button btn btn-white btn-primary btn-bold" tabindex="0"
+				aria-controls="dynamic-table" href="#" data-original-title=""
+				title=""> <span><i class="fa fa-edit bigger-110 green"></i>
+					<span class="hidden">编辑操作人员信息</span></span>
+			</a> <a class="dt-button btn btn-white btn-primary btn-bold" tabindex="0"
+				aria-controls="dynamic-table" href="#" data-original-title=""
+				title=""> <span> <i class="fa fa-trash bigger-110 red"></i>
+					<span class="hidden">删除操作人员</span></span>
+			</a> <a class="dt-button btn btn-white btn-primary btn-bold" tabindex="0"
+				aria-controls="dynamic-table" href="#" data-original-title=""
+				title=""> <span> <i class="fa fa-refresh bigger-110 blue"></i>
+					<span class="hidden">重新加载</span></span>
+			</a>
+		</div>
+	</div>
+	<div>
+		<table id="table" data-toolbar="#toolbar"
+			data-maintain-selected="true" data-url="/operators"
+			data-pagination="true" data-search="false"
+			data-click-to-select="true" data-show-columns="true"
+			data-show-export="false">
+			<thead>
+				<tr>
+					<th data-radio="true"></th>
+					<th data-field="id">操作人员ID</th>
+					<th data-field="username">用户名</th>
+					<th data-field="password">密码</th>
+					<th data-field="role" data-formatter="roleFormatter">角色</th>
+					<th data-field="company.shortName">客户名称</th>
+				</tr>
+			</thead>
+		</table>
+	</div>
+	<div class="modal fade" id="modal" tabindex="-1" role="dialog"
+		aria-labelledby="editModalLabel">
+		<div class="modal-dialog" role="document">
+			<div class="modal-content">
+				<div class="modal-header">
+					<button type="button" class="close" data-dismiss="modal"
+						aria-label="Close">
+						<span aria-hidden="true">&times;</span>
+					</button>
+					<h4 class="modal-title" id="editModalLabel">操作人员管理</h4>
+				</div>
+				<div class="modal-body">
+					<form id="modal_form" class="form-horizontal">
+						<input type="hidden" name="id" id="editId"> <input
+							type="hidden" name="_method" value="patch">
+						<div class="form-group">
+							<label for="username" class="col-sm-3 control-label">用户名：</label>
+							<div class="col-sm-8">
+								<input class="form-control" name="username" id="username"
+									required="required">
+							</div>
+						</div>
+						<div class="form-group">
+							<label for="password" class="col-sm-3 control-label">密码：</label>
+							<div class="col-sm-8">
+								<input type="password" class="form-control" name="password"
+									id="password" required="required">
+							</div>
+						</div>
+						<div class="form-group">
+							<label for="repassword" class="col-sm-3 control-label">确认密码：</label>
+							<div class="col-sm-8">
+								<input type="password" class="form-control" name="repassword"
+									id="repassword" required="required">
+							</div>
+						</div>
+						<div class="form-group">
+							<label for="role" class="col-sm-3 control-label">角色：</label>
+							<div class="col-sm-8">
+								<select name="role" id="role" class="chosen-select form-control">
+									<option value="1">超级管理员</option>
+									<option value="2">管理员</option>
+									<option value="3">用户</option>
+								</select>
+							</div>
+						</div>
+						
+						<div id="company_select" class="form-group" style="display:none;">
+							<label for="company" class="col-sm-3 control-label">客户名称：</label>
+							<div class="col-sm-8">
+								<select class="chosen-select form-control" th:remove="none"
+									name="company" id="company">
+									<option th:each="company:${companies}" th:value="${company.id}"
+										th:text="${company.shortName}"></option>
+								</select>
+							</div>
+						</div>
+						
+						<div class="modal-footer" style="background-color: white">
+							<button type="submit" class="btn btn-primary" id="model_submit">提交</button>
+						</div>
+					</form>
+				</div>
+			</div>
+		</div>
+	</div>
+	<script type="text/javascript">
+		$(function() {
+			$('#table').bootstrapTable();
+
+			$('#table').on('click-row.bs.table', function(e, row, $element) {
+				$('.success').removeClass('success');
+				$($element).addClass('success');
+			});
+			
+			$("select[name=role]").on("change", function() {
+				var role = $('#role').val();
+				if (role == '3') {
+					$('#company_select').css('display','');
+				}
+				if (role != '3') {
+					$('#company_select').css('display','none');
+				}
+			})
+			
+			$(".fa-plus").parents("a").on('click', function() {
+				$('#username').removeAttr('readonly');
+				$('#role').removeAttr('disabled');
+				$('#company').removeAttr('readonly');
+				$('#company_select').css('display','none');
+				$('#modal :input').val('');
+				$('#modal :input[name="_method"]').val('');
+				$('#modal').modal('show');
+			})
+			$(".fa-edit").parents("a").on(
+					'click',
+					function() {
+						$('#company_select').css('display','none');
+						var ids = getIdSelections();
+						if (ids.length == 0 || ids.length > 1) {
+							$.alert({
+								title : '提示',
+								content : '请选择一行'
+							});
+							return;
+						}
+						var operator = $('#table').bootstrapTable(
+								'getSelections');
+						$('#modal :input[name="_method"]').val('patch');
+						$('#modal :input[name="id"]').val(operator[0].id);
+						$('#modal :input[name="username"]').val(
+								operator[0].username);
+						$('#modal :input[name="password"]').val(
+								operator[0].password);
+						$('#modal :input[name="repassword"]').val(
+								operator[0].password);
+						$('#role').val(operator[0].role);
+						$('#username').attr('readonly', 'readonly');
+						$('#role').attr('disabled', 'disabled');
+						
+						//$('#company').attr('readonly', 'readonly').val(operator[0].company ? operator[0].company.id : 0);
+						
+						$('#modal').modal('show');
+					})
+
+			$(".fa-trash").parents("a").on('click', function() {
+				var ids = getIdSelections();
+				if (ids.length == 0 || ids.length > 1) {
+					$.alert({
+						title : '提示',
+						content : '请选择一行'
+					});
+					return;
+				}
+				$.ajax({
+					url : '/operators',
+					type : 'post',
+					dataType : "text",
+					data : {
+						id : ids[0],
+						_method : 'DELETE'
+					},
+					success : function(result) {
+						$('#modal').modal('hide');
+						if (result == "success") {
+							$.alert({
+								title : '提示',
+								content : '删除成功'
+							});
+							$('#table').bootstrapTable('refresh', {
+								url : '/operators'
+							});
+						} else
+							$.alert(result);
+					}
+				});
+			})
+			$(".fa-refresh").parents("a").on('click', function() {
+				$('#table').bootstrapTable('refresh', {
+					url : '/operators'
+				});
+			})
+			$('#model_submit').click(function(e) {
+				var password = $('#password').val();
+				var repassword = $('#repassword').val();
+				if (password != repassword) {
+					$.alert('密码不一致，请重新输入！');
+					return false;
+				}
+				var data = $('#modal_form').serializeArray();
+				$.ajax({
+					url : '/operators',
+					data : data,
+					type : 'POST',
+					dataType : "text",
+					success : function(result) {
+						$('#table').bootstrapTable('refresh', {
+							url : '/operators'
+						});
+						if (result == "success") {
+							$('#modal').modal('hide');
+							$.alert({
+								title : '提示',
+								content : '操作成功'
+							});
+						} else if (result == "failed") {
+							$.alert({
+								title : '提示',
+								content : '操作失败'
+							});
+						} else
+							$.alert(result);
+					}
+				});
+			});
+
+			function getIdSelections() {
+				return $.map($('#table').bootstrapTable('getSelections'),
+						function(row) {
+							return row.id;
+						});
+			}
+		})
+
+		function roleFormatter(value, row, index) {
+			if (value == '1')
+				return '超级管理员'
+			else if (value == '2') {
+				return '管理员'
+			} else if (value == '3') {
+				return '用户'
+			} else
+				return '未知';
+		}
+	</script>
+
+</div>
+</html>

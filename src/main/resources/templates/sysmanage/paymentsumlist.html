@@ -1,0 +1,103 @@
+<html xmlns:th="http://www.thymeleaf.org"
+	xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+	layout:decorate="layout/layout">
+<div layout:fragment="sidebar" th:replace="layout/sidebar"></div>
+<div layout:fragment="content" th:fragment="content">
+	<div class="page-header">
+		<h1>授权管理</h1>
+	</div>
+	<div class="table-header">授权统计列表</div>
+	<div id="toolbar">
+		<div class="dt-buttons btn-overlap btn-group">
+			<div style="float: left; width: 220px; margin-right: 10px;" th:if="${#strings.equals(session.SPRING_SECURITY_CONTEXT.authentication.principal.authorities[0].authority, 'ROLE_ADMIN') or #strings.equals(session.SPRING_SECURITY_CONTEXT.authentication.principal.authorities[0].authority, 'ROLE_ROOT')}">
+				<span>客户名称：</span> <select name="company_select" th:remove="none"
+					style="width: 150px; height: 33px" id="company_select">
+					<option th:each="company:${companies}" th:value="${company.id}"
+						th:text="${company.shortName}"></option>
+				</select>
+			</div>
+		</div>
+	</div>
+	
+	<div>
+		<table id="table" data-toolbar="#toolbar"
+			data-maintain-selected="true" data-url="/paymentSum/company"
+			data-side-pagination="server" data-page-list="[5, 10, 20, 50, 100]"
+			data-pagination="true" data-search="false"
+			data-click-to-select="true" data-show-columns="true"
+			data-show-export="false">
+			<thead>
+				<tr>
+					<th data-field="company.id">客户ID</th>
+					<th data-field="company.shortName">客户名称</th>
+					<th data-field="authDays" data-formatter="authDaysFormatter">授权天数</th>
+					<th data-field="authPlat" data-formatter="authPlatFormatter">授权平台</th>
+					<th data-field="authFunc" data-formatter="authFuncFormatter">授权功能</th>
+					<th data-field="authCode">授权代码</th>
+					<th data-field="totalCount">授权总数</th>
+					<th data-field="remainCount">剩余条数</th>
+					<th data-field="updateTime">更新时间</th>
+				</tr>
+			</thead>
+		</table>
+	</div>
+	<script th:inline="javascript">
+		$(function() {
+			$('#table').bootstrapTable({
+				 queryParams: function(params){
+					 params.companyId = $("#company_select").val();
+					 return params;
+				 }
+			});
+
+			$('#table').on('click-row.bs.table', function(e, row, $element) {
+				$('.success').removeClass('success');
+				$($element).addClass('success');
+			});
+
+			$("select[name=company_select]").on("change", function() {
+				$('#table').bootstrapTable('refresh');
+			})
+		})
+		function authDaysFormatter(value, row, index) {
+			if (value == '36500')
+				return '永久'
+			else
+				return value + '天';
+		}
+		function authPlatFormatter(value, row, index) {
+			if (value == '1')
+				return 'Windows'
+			else if (value == '2') {
+				return 'Android'
+			} 
+			else
+				return '未知';
+		}
+		function authFuncFormatter(value, row, index) {
+			if (value == '1')
+				return '1:1'
+			else if (value == '2') {
+				return '1:N'
+			} 
+			else if (value == '3') {
+				return '活体'
+			} 
+			else if (value == '4') {
+				return '1:1和1:N'
+			} 
+			else if (value == '5') {
+				return '1:1和活体'
+			}
+			else if (value == '6') {
+				return '1:N和活体'
+			}
+			else if (value == '7') {
+				return '1:1、1:N和活体'
+			}
+			else
+				return '未知';
+		}
+	</script>
+</div>
+</html>

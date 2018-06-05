@@ -1,0 +1,224 @@
+<html xmlns:th="http://www.thymeleaf.org"
+      xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+      layout:decorate="layout/layout">
+<div layout:fragment="sidebar" th:replace="layout/sidebar"></div>
+<div layout:fragment="content" th:fragment="content">
+    <script type="text/javascript" src="/assets/comps/bootstrap/js/jquery.js"></script>
+    <script type="text/javascript" src="/assets/comps/bootstrap/js/date-time-picker.min.js"></script>
+    <div class="page-header">
+        <h1>授权管理</h1>
+    </div>
+    <div id="toolbars" style="position: relative;margin-top: 10px;margin-bottom: 10px;line-height: 34px;">
+        <div class="dt-buttons btn-overlap btn-group">
+            <div th:if="${#strings.equals(session.SPRING_SECURITY_CONTEXT.authentication.principal.authorities[0].authority, 'ROLE_ADMIN') or #strings.equals(session.SPRING_SECURITY_CONTEXT.authentication.principal.authorities[0].authority, 'ROLE_ROOT')}">
+                <span>客户名称：</span>
+                <select name="company" th:remove="none" style="width: 100px; height: 48px" id="company">
+                    <option value="">所有</option>
+                    <option th:each="company:${companies}" th:value="${company.id}"
+                            th:text="${company.shortName}"></option>
+                </select>
+
+                <span style="margin-left:6px;"></span>
+
+                <span>授权平台：</span> <select name="authPlat" th:remove="none"
+                                           style="width: 100px; height: 48px" id="authPlat">
+                <option value="">所有</option>
+                <option value="1">Windows</option>
+                <option value="2">Android</option>
+            </select>
+
+                <span style="margin-left:6px;"></span>
+
+                <span>授权功能：</span> <select name="authFunc" th:remove="none"
+                                           style="width: 100px; height: 48px" id="authFunc">
+                <option value="">所有</option>
+                <option value="1">1:1</option>
+                <option value="2">1:N</option>
+                <option value="3">活体</option>
+                <option value="4">1:1和1:N</option>
+                <option value="5">1:1和活体</option>
+                <option value="6">1:N和活体</option>
+                <option value="7">1:1、1:N和活体</option>
+            </select>
+
+                <span style="margin-left:6px;"></span>
+
+                <span>开始时间：</span>
+                <input type="datetime-local" step="01" name="startTime" id="startTime" />
+
+                <span style="margin-left:6px;"></span>
+
+                <span>结束时间：</span>
+                <input type="datetime-local" step="01" name="endTime" id="endTime"/>
+
+                <span style="margin-left:6px;"></span>
+                <button type="button" class="btn btn-primary" id="query">查询</button>
+
+            </div>
+
+            <div th:if="${#strings.equals(session.SPRING_SECURITY_CONTEXT.authentication.principal.authorities[0].authority, 'ROLE_USER')}">
+                <span>授权平台：</span> <select name="authPlat" th:remove="none"
+                                           style="width: 100px; height: 48px" id="authPlat">
+                <option value="">所有</option>
+                <option value="1">Windows</option>
+                <option value="2">Android</option>
+            </select>
+
+                <span>授权功能：</span> <select name="authFunc" th:remove="none"
+                                           style="width: 100px; height: 48px" id="authFunc">
+                <option value="">所有</option>
+                <option value="1">1:1</option>
+                <option value="2">1:N</option>
+                <option value="3">活体</option>
+                <option value="4">1:1和1:N</option>
+                <option value="5">1:1和活体</option>
+                <option value="6">1:N和活体</option>
+                <option value="7">1:1、1:N和活体</option>
+            </select>
+
+                <span>开始时间：</span>
+                <input type="text" name="startTime" id="startTime" value="2018/06/05 19:59:40"/>
+
+                <span>结束时间：</span>
+                <input type="text" name="endTime" id="endTime" value="2018/06/05 19:59:40" />
+
+                <span style="margin-left:10px;"></span>
+                <button type="button" class="btn btn-primary" id="reset">重置</button>
+                <span style="margin-left:10px;"></span>
+                <button type="button" class="btn btn-primary" id="query">查询</button>
+                <script type="text/javascript">
+                    $('#startTime').dateTimePicker({
+                        mode: 'dateTime',
+                        format: 'yyyy/MM/dd HH:mm:ss'
+                    });
+                    $('#endTime').dateTimePicker({
+                        mode: 'dateTime',
+                        format: 'yyyy/MM/dd HH:mm:ss'
+                    });
+                </script>
+            </div>
+        </div>
+    </div>
+    <div class="table-header">授权文件列表</div>
+    <div>
+        <table id="table" data-toolbar="#toolbar"
+               data-maintain-selected="true" data-url="/auth/company"
+               data-side-pagination="server" data-page-list="[5, 10, 20, 50, 100]"
+               data-pagination="true" data-search="false" data-click-to-select="true"
+               data-show-columns="true" data-show-export="false">
+            <thead>
+            <tr>
+                <th data-field="company.id">客户ID</th>
+                <th data-field="company.shortName">客户名称</th>
+                <th data-field="authNum">授权编号</th>
+                <th data-field="authCode">授权代码</th>
+                <th data-field="authDays" data-formatter="authDaysFormatter">授权天数</th>
+                <th data-field="authPlat" data-formatter="authPlatFormatter">授权平台</th>
+                <th data-field="authFunc" data-formatter="authFuncFormatter">授权功能</th>
+                <th data-field="authStatus" data-formatter="authStatusFormatter">授权状态</th>
+                <th data-field="successTime">授权成功时间</th>
+            </tr>
+            </thead>
+        </table>
+    </div>
+    <script>
+        $(function () {
+            $('#table').bootstrapTable({
+                queryParams: function (params) {
+                    params.companyId = $("#company").val();
+                    return params;
+                }
+            });
+
+            $('#table').on('click-row.bs.table', function (e, row, $element) {
+                $('.success').removeClass('success');
+                $($element).addClass('success');
+            });
+
+            $('#query').click(function (e) {
+                var companyId = $("#company").val();
+                var authPlat = $("#authPlat").val();
+                var authFunc = $("#authFunc").val();
+                var startTime = $("#startTime").val();
+                var endTime = $("#endTime").val();
+
+                var queryParams = {};
+                queryParams.companyId = companyId;
+                queryParams.authPlat = authPlat;
+                queryParams.authFunc = authFunc;
+                queryParams.startTime = startTime;
+                queryParams.endTime = endTime;
+                var data = JSON.stringify(queryParams);
+
+                var opt = {
+                    query: {
+                        companyId: companyId,
+                        authPlat: authPlat,
+                        authFunc: authFunc,
+                        startTime: startTime,
+                        endTime: endTime
+                    }
+                };
+
+                $('#table').bootstrapTable('refresh', opt);
+            })
+
+            /* $("select[name=company]").on("change", function() {
+                $('#table').bootstrapTable('refresh');
+            }) */
+        })
+
+        function authDaysFormatter(value, row, index) {
+            if (value == '36500')
+                return '永久'
+            else
+                return value + '天';
+        }
+
+        function authPlatFormatter(value, row, index) {
+            if (value == '1')
+                return 'Windows'
+            else if (value == '2') {
+                return 'Android'
+            }
+            else
+                return '未知';
+        }
+
+        function authFuncFormatter(value, row, index) {
+            if (value == '1')
+                return '1:1'
+            else if (value == '2') {
+                return '1:N'
+            }
+            else if (value == '3') {
+                return '活体'
+            }
+            else if (value == '4') {
+                return '1:1和1:N'
+            }
+            else if (value == '5') {
+                return '1:1和活体'
+            }
+            else if (value == '6') {
+                return '1:N和活体'
+            }
+            else if (value == '7') {
+                return '1:1、1:N和活体'
+            }
+            else
+                return '未知';
+        }
+
+        function authStatusFormatter(value, row, index) {
+            if (value == '1')
+                return '成功'
+            else if (value == '2') {
+                return '失败'
+            }
+            else
+                return '授权中';
+        }
+    </script>
+</div>
+</html>

@@ -1,0 +1,210 @@
+<html xmlns:th="http://www.thymeleaf.org"
+	xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+	layout:decorate="layout/layout">
+<div layout:fragment="sidebar" th:replace="layout/sidebar"></div>
+<div layout:fragment="content" th:fragment="content">
+	<div class="page-header">
+		<h1>客户管理</h1>
+	</div>
+	<div class="table-header">客户列表</div>
+	<div id="toolbar">
+		<div class="dt-buttons btn-overlap btn-group">
+			<a class="dt-button btn btn-white btn-primary btn-bold" tabindex="0"
+				aria-controls="dynamic-table" href="#" data-original-title=""
+				title="" th:if="${#strings.equals(session.SPRING_SECURITY_CONTEXT.authentication.principal.authorities[0].authority, 'ROLE_ADMIN')}"> <span><i class="fa fa-plus bigger-110 green"></i>
+					<span class="hidden">新增客户</span></span>
+			</a> <a class="dt-button btn btn-white btn-primary btn-bold" tabindex="0"
+				aria-controls="dynamic-table" href="#" data-original-title=""
+				title="" th:if="${#strings.equals(session.SPRING_SECURITY_CONTEXT.authentication.principal.authorities[0].authority, 'ROLE_ADMIN')}"> <span><i class="fa fa-edit bigger-110 green"></i>
+					<span class="hidden">编辑客户信息</span></span>
+			</a> <a class="dt-button btn btn-white btn-primary btn-bold" tabindex="0"
+				aria-controls="dynamic-table" href="#" data-original-title=""
+				title="" th:if="${#strings.equals(session.SPRING_SECURITY_CONTEXT.authentication.principal.authorities[0].authority, 'ROLE_ADMIN')}"> <span> <i class="fa fa-trash bigger-110 red"></i>
+					<span class="hidden">删除客户</span></span>
+			</a> <a class="dt-button btn btn-white btn-primary btn-bold" tabindex="0"
+				aria-controls="dynamic-table" href="#" data-original-title=""
+				title=""> <span> <i class="fa fa-refresh bigger-110 blue"></i>
+					<span class="hidden">重新加载</span></span>
+			</a>
+		</div>
+	</div>
+	<div>
+		<table id="table" data-toolbar="#toolbar"
+			data-maintain-selected="true" data-url="/companies"
+			data-pagination="true" data-search="false"
+			data-click-to-select="true" data-show-columns="true"
+			data-show-export="false">
+			<thead>
+				<tr>
+					<th data-radio="true"></th>
+					<th data-field="id">客户ID</th>
+					<th data-field="shortName">客户名称</th>
+					<th data-field="fullName">公司全称</th>
+					<th data-field="identifier">公司标识</th>
+					<th data-field="ip">公司IP</th>
+					<th data-field="createTime">创建时间</th>
+				</tr>
+			</thead>
+		</table>
+	</div>
+	<div class="modal fade" id="modal" tabindex="-1" role="dialog"
+		aria-labelledby="editModalLabel">
+		<div class="modal-dialog" role="document">
+			<div class="modal-content">
+				<div class="modal-header">
+					<button type="button" class="close" data-dismiss="modal"
+						aria-label="Close">
+						<span aria-hidden="true">&times;</span>
+					</button>
+					<h4 class="modal-title" id="editModalLabel">客户管理</h4>
+				</div>
+				<div class="modal-body">
+					<form id="modal_form" class="form-horizontal">
+						<input type="hidden" name="id" id="editId"> 
+						<input type="hidden" name="_method" value="patch">
+						<div class="form-group">
+							<label for="shortName" class="col-sm-2 control-label">名称：</label>
+							<div class="col-sm-9">
+								<input class="form-control" name="shortName" id="shortName"
+									required="required">
+							</div>
+						</div>
+						<div class="form-group">
+							<label for="fullName" class="col-sm-2 control-label">全称：</label>
+							<div class="col-sm-9">
+								<input type="text" class="form-control" name="fullName"
+									id="fullName" required="required">
+							</div>
+						</div>
+						
+						<div class="form-group">
+							<label for="ip" class="col-sm-2 control-label">IP：</label>
+							<div class="col-sm-9">
+								<input type="text" class="form-control" name="ip"
+									id="ip" required="required" placeholder="多个IP以英文逗号分隔">
+							</div>
+						</div>
+						
+						<div class="modal-footer" style="background-color: white">
+							<button type="submit" class="btn btn-primary" id="model_submit">提交</button>
+						</div>
+					</form>
+				</div>
+			</div>
+		</div>
+	</div>
+	<script type="text/javascript">
+		$(function() {
+			$('#table').bootstrapTable();
+
+			$('#table').on('click-row.bs.table', function(e, row, $element) {
+				$('.success').removeClass('success');
+				$($element).addClass('success');
+			});
+			$(".fa-plus").parents("a").on('click', function() {
+				$('#modal :input').val('');
+				$('#modal :input[name="_method"]').val('');
+				$('#modal').modal('show');
+			})
+			$(".fa-edit").parents("a").on(
+					'click',
+					function() {
+						var ids = getIdSelections();
+						if (ids.length == 0 || ids.length > 1) {
+							$.alert({
+								title : '提示',
+								content : '请选择一行',
+							});
+							return;
+						}
+						var company = $('#table').bootstrapTable(
+								'getSelections');
+						$('#modal :input[name="_method"]').val('patch');
+						$('#modal :input[name="id"]')
+								.val(company[0].id);
+						$('#modal :input[name="shortName"]').val(
+								company[0].shortName);
+						$('#modal :input[name="fullName"]').val(
+								company[0].fullName);
+						$('#modal :input[name="ip"]').val(
+								company[0].ip);
+						$('#modal').modal('show');
+					})
+
+			$(".fa-trash").parents("a").on('click', function() {
+				var ids = getIdSelections();
+				if (ids.length == 0 || ids.length > 1) {
+					$.alert({
+						title : '提示',
+						content : '请选择一行',
+					});
+					return;
+				}
+				$.ajax({
+					url : '/companies',
+					type : 'post',
+					dataType : "text",
+					data : {
+						id : ids[0],
+						_method : 'DELETE'
+					},
+					success : function(result) {
+						$('#modal').modal('hide');
+						if (result == "success") {
+							$.alert({
+								title : '提示',
+								content : '删除成功',
+							});
+							$('#table').bootstrapTable('refresh', {
+								url : '/companies'
+							});
+						} else
+							$.alert(result);
+					}
+				});
+			})
+			$(".fa-refresh").parents("a").on('click', function() {
+				$('#table').bootstrapTable('refresh', {
+					url : '/companies'
+				});
+			})
+			$("#modal_form").on("submit", function(ev) {
+				var data = $('#modal_form').serializeArray();
+				$.ajax({
+					url : '/companies',
+					data : data,
+					type : 'POST',
+					dataType : "text",
+					success : function(result) {
+						$('#table').bootstrapTable('refresh', {
+							url : '/companies'
+						});
+						if (result == "success") {
+							$('#modal').modal('hide');
+							$.alert({
+								title : '提示',
+								content : '操作成功',
+							});
+						} else if (result == "failed") {
+							$.alert({
+								title : '提示',
+								content : '操作失败',
+							});
+						} else
+							$.alert(result);
+					}
+				});
+				ev.preventDefault();
+			});
+
+			function getIdSelections() {
+				return $.map($('#table').bootstrapTable('getSelections'),
+						function(row) {
+							return row.id;
+						});
+			}
+		})
+	</script>
+
+</div>
+</html>

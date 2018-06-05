@@ -1,0 +1,126 @@
+<html xmlns:th="http://www.thymeleaf.org"
+	xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+	layout:decorate="layout/layout">
+<div layout:fragment="sidebar" th:replace="layout/sidebar"></div>
+<div layout:fragment="content" th:fragment="content">
+	<div class="page-header">
+		<h1>操作日志管理</h1>
+	</div>
+	<div class="table-header">操作日志列表</div>
+	<div id="toolbar">
+		<div class="dt-buttons btn-overlap btn-group">
+			<div>
+				<span>操作人员：</span> 
+				<select name="operator" th:remove="none"
+					style="width: 150px; height: 33px" id="operator">
+					<option th:each="operator:${operators}" th:value="${operator.id}"
+						th:text="${operator.username}"></option>
+				</select>
+				
+				<span style="margin-left:10px;"></span>
+				
+				<span>开始时间：</span>
+				<input type="date" name="startTime" id="startTime" />
+				
+				<span style="margin-left:10px;"></span>
+				
+				<span>结束时间：</span>
+				<input type="date" name="endTime" id="endTime" />
+				
+				<span style="margin-left:20px;"></span>
+				<button type="button" class="btn btn-primary" id="queryByDate">查询</button>
+				
+				<span style="margin-left:20px;"></span>
+				<button type="button" class="btn btn-primary" id="exportExcel">导出当前页</button>
+				
+				<span style="margin-left:20px;"></span>
+				<button type="button" class="btn btn-primary" id="exportAll">导出全部</button>
+			</div>
+		</div>
+	</div>
+	
+	<div>
+		<table id="table" data-toolbar="#toolbar"
+			data-maintain-selected="true" data-url="/oplogs/operator"
+			data-side-pagination="server" data-page-list="[5, 10, 20, 50, 100]"
+			data-pagination="true" data-search="false"
+			data-click-to-select="true" data-show-columns="true"
+			data-show-export="true" data-export-types="['excel']">
+			<thead>
+				<tr>
+					<th data-field="operator.username">操作人员</th>
+					<th data-field="ip">IP地址</th>
+					<th data-field="opTime">操作时间</th>
+					<th data-field="operation">操作名称</th>
+				</tr>
+			</thead>
+		</table>
+	</div>
+	<script>
+		$(function() {
+			$('#table').bootstrapTable({
+				queryParams : function(params) {
+					params.operatorId = $("#operator").val();
+					return params;
+				},
+				showExport: true,
+				exportDataType: "all"
+			});
+			
+			$('#exportExcel').click(function(e) {
+				$('#table').tableExport({
+					type:'excel',
+					fileName: '操作日志',
+					tableName: '操作日志',
+					worksheetName: '操作日志'
+				});
+			});
+			
+			$('#exportAll').click(function(e) {
+				window.location.href = "/oplogs/exportOpLogs";
+			});
+
+			$('#table').on('click-row.bs.table', function(e, row, $element) {
+				$('.success').removeClass('success');
+				$($element).addClass('success');
+			});
+			
+			$("select[name=operator]").on("change", function() {
+				$('#table').bootstrapTable('refresh');
+			})
+			
+			$('#queryByDate').click(function(e) {
+				var operatorId = $("#operator").val();
+				var startTime = $("#startTime").val();
+				var endTime = $("#endTime").val();
+				
+				var queryParams = {};
+				queryParams.operatorId = operatorId;
+				queryParams.startTime = startTime;
+				queryParams.endTime = endTime;
+				//var data = $.param(queryParams);
+				var data = JSON.stringify(queryParams);
+				
+				var opt = {
+					query:{
+						operatorId : operatorId,
+						startTime : startTime,
+						endTime : endTime
+				    }
+				};
+				
+				/* $.ajax({
+					url : '/oplogs/operator',
+					data : data,
+					type : 'GET',
+					dataType : "text",
+					success : function(result) {
+						//$('#table').bootstrapTable('refresh');
+					}
+				}); */
+				$('#table').bootstrapTable('refresh', opt);
+			})
+		})
+	</script>
+</div>
+</html>

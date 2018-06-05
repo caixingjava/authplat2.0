@@ -1,0 +1,451 @@
+<html xmlns:th="http://www.thymeleaf.org"
+	xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+	layout:decorate="layout/layout">
+<div layout:fragment="sidebar" th:replace="layout/sidebar"></div>
+<div layout:fragment="content" th:fragment="content">
+	<div class="page-header">
+		<h1>充值管理</h1>
+	</div>
+	<div class="table-header">充值记录列表</div>
+	<div id="toolbar">
+		<div class="dt-buttons btn-overlap btn-group">
+			<div style="float: left; width: 220px; margin-right: 10px;" th:if="${#strings.equals(session.SPRING_SECURITY_CONTEXT.authentication.principal.authorities[0].authority, 'ROLE_ADMIN') or #strings.equals(session.SPRING_SECURITY_CONTEXT.authentication.principal.authorities[0].authority, 'ROLE_ROOT')}">
+				<span>客户名称：</span> <select name="company_select" th:remove="none"
+					style="width: 150px; height: 33px" id="company_select">
+					<option th:each="company:${companies}" th:value="${company.id}"
+						th:text="${company.shortName}"></option>
+				</select>
+			</div>
+			
+			<a class="dt-button btn btn-white btn-primary btn-bold" tabindex="0"
+				aria-controls="dynamic-table" href="#" data-original-title=""
+				title="" th:if="${#strings.equals(session.SPRING_SECURITY_CONTEXT.authentication.principal.authorities[0].authority, 'ROLE_ADMIN')}"> <span><i class="fa fa-plus bigger-110 green"></i>
+					<span class="hidden">充值</span></span>
+			</a> <a class="dt-button btn btn-white btn-primary btn-bold" tabindex="0"
+				aria-controls="dynamic-table" href="#" data-original-title=""
+				title="" th:if="${#strings.equals(session.SPRING_SECURITY_CONTEXT.authentication.principal.authorities[0].authority, 'ROLE_ADMIN')}"> <span> <i class="fa fa-trash bigger-110 red"></i>
+					<span class="hidden">充值撤回</span></span>
+			</a> <a class="dt-button btn btn-white btn-primary btn-bold" tabindex="0"
+				aria-controls="dynamic-table" href="#" data-original-title=""
+				title=""> <span> <i class="fa fa-refresh bigger-110 blue"></i>
+					<span class="hidden">重新加载</span></span>
+			</a>
+		</div>
+	</div>
+	
+	<div class="modal fade" id="edit_modal" tabindex="-1" role="dialog"
+		aria-labelledby="editModalLabel">
+		<div class="modal-dialog" role="document">
+			<div class="modal-content">
+				<div class="modal-header">
+					<button type="button" class="close" data-dismiss="modal"
+						aria-label="Close">
+						<span aria-hidden="true">&times;</span>
+					</button>
+					<h4 class="modal-title" id="editModalLabel">充值</h4>
+				</div>
+				<div class="modal-body">
+					<form id="edit_form" class="form-horizontal">
+						<input type="hidden" name="id" id="editId"> 
+						<input type="hidden" name="_method" value="patch">
+
+						<div class="form-group">
+							<label for="company" class="col-sm-3 control-label">客户名称：</label>
+							<div class="col-sm-8">
+								<select class="chosen-select form-control" th:remove="none"
+									name="company" id="company">
+									<option th:each="company:${companies}" th:value="${company.id}"
+										th:text="${company.shortName}"></option>
+								</select>
+							</div>
+						</div>
+						
+						<div class="form-group">
+							<label for="authDays" class="col-sm-3 control-label">授权天数：</label>
+							<div class="col-sm-8">
+								<input type="number" class="form-control" name="authDays"
+									id="authDays" required="required" step="30" min="0">
+							</div>
+						</div>
+						<div class="form-group">
+							<label for="authPlat" class="col-sm-3 control-label">授权平台：</label>
+							<div class="col-sm-8">
+								<select name="authPlat" class="chosen-select form-control">
+									<option value="1">Windows</option>
+									<option value="2">Android</option>
+								</select>
+							</div>
+						</div>
+						<div class="form-group">
+							<label for="authFunc" class="col-sm-3 control-label">授权功能：</label>
+							<div class="col-sm-8">
+								<select name="authFunc" class="chosen-select form-control">
+									<option value="1">1:1</option>
+									<option value="2">1:N</option>
+									<option value="3">活体</option>
+									<option value="4">1:1和1:N</option>
+									<option value="5">1:1和活体</option>
+									<option value="6">1:N和活体</option>
+									<option value="7">1:1、1:N和活体</option>
+								</select>
+							</div>
+						</div>
+						
+						<div class="form-group">
+							<div class="col-sm-offset-1 col-sm-8">
+								<button type="button" class="btn btn-primary" id="queryRemainCount">查看剩余条数</button>
+							</div>
+						</div>
+
+						<div class="form-group">
+							<label for="remainCount" class="col-sm-3 control-label">剩余条数：</label>
+							<div class="col-sm-8">
+								<input type="number" class="form-control" name="remainCount"
+									id="remainCount" disabled>
+							</div>
+						</div>
+						
+						<div class="form-group">
+							<label for="authFee" class="col-sm-3 control-label">充值金额：</label>
+							<div class="col-sm-8">
+								<input type="text" class="form-control" name="authFee"
+									id="authFee" required="required">
+							</div>
+						</div>
+						<div class="form-group">
+							<label for="authAmount" class="col-sm-3 control-label">授权条数：</label>
+							<div class="col-sm-8">
+								<input type="number" class="form-control" name="authAmount"
+									id="authAmount" required="required" step="10" min="0">
+							</div>
+						</div>
+						<div class="form-group">
+							<label for="price" class="col-sm-3 control-label">单价：</label>
+							<div class="col-sm-8">
+								<input type="text" class="form-control" name="price" id="price" readonly="readonly">
+							</div>
+						</div>
+
+						<div class="modal-footer" style="background-color: white">
+							<button type="submit" class="btn btn-primary" id="edit_submit">提交</button>
+						</div>
+					</form>
+				</div>
+			</div>
+		</div>
+	</div>
+	
+	<div>
+		<table id="table" data-toolbar="#toolbar"
+			data-maintain-selected="true" data-url="/payments/company"
+			data-side-pagination="server" data-page-list="[5, 10, 20, 50, 100]"
+			data-pagination="true" data-search="false"
+			data-click-to-select="true" data-show-columns="true"
+			data-show-export="false">
+			<thead>
+				<tr>
+					<th data-radio="true"></th>
+					<th data-field="company.id">客户ID</th>
+					<th data-field="company.shortName">客户名称</th>
+					<th data-field="authDays" data-formatter="authDaysFormatter">授权天数</th>
+					<th data-field="authPlat" data-formatter="authPlatFormatter">授权平台</th>
+					<th data-field="authFunc" data-formatter="authFuncFormatter">授权功能</th>
+					<th data-field="authCode">授权代码</th>
+					<th data-field="authFee">金额</th>
+					<th data-field="authAmount">授权条数</th>
+					<th data-field="price">单价</th>
+					<th data-field="createTime">创建时间</th>
+				</tr>
+			</thead>
+		</table>
+	</div>
+	<script th:inline="javascript">
+		$(function() {
+			$('#table').bootstrapTable({
+				 queryParams: function(params){
+					 params.companyId = $("#company_select").val();
+					 return params;
+				 }
+			});
+
+			$('#table').on('click-row.bs.table', function(e, row, $element) {
+				$('.success').removeClass('success');
+				$($element).addClass('success');
+			});
+
+			$("select[name=company_select]").on("change", function() {
+				$('#table').bootstrapTable('refresh');
+			})
+			
+			$("#authAmount").on("input", function() {
+				var authFee = $('#edit_modal :input[name="authFee"]').val();
+				if (!authFee) {
+					$.alert({
+						title : '提示',
+						content : '请先输入充值金额'
+					});
+					return;
+				}
+				var amount = $("#authAmount").val();
+				if ("0" == amount) {
+					$.alert({
+						title : '提示',
+						content : '授权条数不能为0'
+					});
+					return;
+				}
+				var fee = $("#authFee").val();
+				if(fee && amount){
+					$("#price").val(fee/amount);
+				}
+			})
+			
+			$(".fa-plus").parents("a").on('click', function() {
+				$('#edit_modal :input').val('');
+				$('#edit_modal :input[name="_method"]').val('');
+				$('#edit_modal').modal('show');
+			})
+			
+			$(".fa-refresh").parents("a").on('click', function() {
+				$('#table').bootstrapTable('refresh');
+			})
+			
+			$('#edit_submit').click(function(e) {
+				var companyId = $('#edit_modal :input[name="company"]').val();
+				if (!companyId) {
+					$.alert({
+						title : '提示',
+						content : '请先选择客户'
+					});
+					return;
+				}
+				
+				var authPlat = $('#edit_modal :input[name="authPlat"]').val();
+				if (!authPlat) {
+					$.alert({
+						title : '提示',
+						content : '请先选择授权平台'
+					});
+					return;
+				}
+				
+				var authFunc = $('#edit_modal :input[name="authFunc"]').val();
+				if (!authFunc) {
+					$.alert({
+						title : '提示',
+						content : '请先选择授权功能'
+					});
+					return;
+				}
+				
+				var authFee = $('#edit_modal :input[name="authFee"]').val();
+				if (!authFee) {
+					$.alert({
+						title : '提示',
+						content : '请输入充值金额'
+					});
+					return;
+				}
+				
+				var authAmount = $('#edit_modal :input[name="authAmount"]').val();
+				if (!authAmount) {
+					$.alert({
+						title : '提示',
+						content : '请输入授权条数'
+					});
+					return;
+				}
+				
+				if ("0" == authAmount) {
+					$.alert({
+						title : '提示',
+						content : '授权条数不能为0'
+					});
+					return;
+				}
+				
+				$("#price").val(authFee/authAmount);
+				
+				var authDays = $('#edit_modal :input[name="authDays"]').val();
+				if(!authDays) {
+					authDays = 0;
+				}
+				var env = [[${env}]];
+				if ("test" != env && authDays == 0) {
+					authDays = 36500;
+				}
+				
+				$('#edit_modal :input[name="authDays"]').val(authDays);
+				
+				var data = $('#edit_form').serializeArray();
+				$.ajax({
+					url : '/payments',
+					data : data,
+					type : 'POST',
+					dataType : "text",
+					success : function(result) {
+						if (result == "success") {
+							$('#edit_modal').modal('hide');
+							$.alert({
+								title : '提示',
+								content : '充值成功'
+							});
+							$('#table').bootstrapTable('refresh');
+						} else {
+							$.alert({
+								title : '提示',
+								content : result
+							});
+						}
+					}
+				});
+			})
+
+			$('#queryRemainCount').click(function(e) {
+				var companyId = $('#edit_modal :input[name="company"]').val();
+				if (!companyId) {
+					$.alert({
+						title : '提示',
+						content : '请先选择客户'
+					});
+					return;
+				}
+				
+				var authPlat = $('#edit_modal :input[name="authPlat"]').val();
+				if (!authPlat) {
+					$.alert({
+						title : '提示',
+						content : '请先选择授权平台'
+					});
+					return;
+				}
+				
+				var authFunc = $('#edit_modal :input[name="authFunc"]').val();
+				if (!authFunc) {
+					$.alert({
+						title : '提示',
+						content : '请先选择授权功能'
+					});
+					return;
+				}
+				
+				var authDays = $('#edit_modal :input[name="authDays"]').val();
+				if(!authDays) {
+					authDays = 0;
+				}
+				var env = [[${env}]];
+				if ("test" != env && authDays == 0) {
+					authDays = 36500;
+				}
+				
+				var hashids = new Hashids("com.minivision.authplat2", 5);
+				var authCode = hashids.encode(authDays, authPlat, authFunc);
+				console.log(authDays + ' ' + authPlat + ' ' + authFunc + ':' + authCode);
+				$.ajax({
+					url : '/companies/' + companyId + '/' + authCode + '/remainCount',
+					type : 'GET',
+					dataType : "text",
+					success : function(result) {
+						$("#remainCount").val(result);
+					}
+				});
+			})
+		})
+		function authDaysFormatter(value, row, index) {
+			if (value == '36500')
+				return '永久'
+			else
+				return value + '天';
+		}
+		function authPlatFormatter(value, row, index) {
+			if (value == '1')
+				return 'Windows'
+			else if (value == '2') {
+				return 'Android'
+			} 
+			else
+				return '未知';
+		}
+		function authFuncFormatter(value, row, index) {
+			if (value == '1')
+				return '1:1'
+			else if (value == '2') {
+				return '1:N'
+			} 
+			else if (value == '3') {
+				return '活体'
+			} 
+			else if (value == '4') {
+				return '1:1和1:N'
+			} 
+			else if (value == '5') {
+				return '1:1和活体'
+			}
+			else if (value == '6') {
+				return '1:N和活体'
+			}
+			else if (value == '7') {
+				return '1:1、1:N和活体'
+			}
+			else
+				return '未知';
+		}
+		$(".fa-trash").parents("a").on('click', function() {
+			//var ids = getIdSelections();
+			var rows = getRowSelections();
+			if (rows.length == 0) {
+				$.alert({
+					title : '提示',
+					content : '请选择一行'
+				});
+				return;
+			}
+			$.confirm({
+                title: '警告',
+                content: '确认删除？',
+                buttons: {
+                    '确认': function(){
+                    	$.ajax({
+            				url : '/payments',
+            				type : 'post',
+            				dataType : "text",
+            				data : {
+            					id : rows[0].id,
+            					companyId : rows[0].company.id,
+            					authCode : rows[0].authCode,
+            					authAmount : rows[0].authAmount,
+            					_method : 'DELETE'
+            				},
+            				success : function(result) {
+            					if (result == "success") {
+            						$.alert({
+            							title : '提示',
+            							content : '删除成功'
+            						});
+            						$('#table').bootstrapTable('refresh');
+            					} else
+            						$.alert(result)
+            				}
+            			});
+                    },
+                    '取消': function(){
+                        return;
+                    }
+                }
+            });
+		})
+
+		function getIdSelections() {
+			return $.map($('#table').bootstrapTable('getSelections'), function(row) {
+				return row.id;
+			});
+		}
+		
+		function getRowSelections() {
+			return $.map($('#table').bootstrapTable('getSelections'), function(row) {
+				return row;
+			});
+		}
+	</script>
+</div>
+</html>

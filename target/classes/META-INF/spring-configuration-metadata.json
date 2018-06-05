@@ -1,0 +1,32 @@
+{
+  "hints": [],
+  "groups": [
+    {
+      "sourceType": "com.minivision.authplat2.config.AuthConfig",
+      "name": "auth",
+      "type": "com.minivision.authplat2.config.AuthConfig"
+    }
+  ],
+  "properties": [
+    {
+      "sourceType": "com.minivision.authplat2.config.AuthConfig",
+      "name": "auth.filepath",
+      "type": "java.lang.String"
+    },
+    {
+      "sourceType": "com.minivision.authplat2.config.AuthConfig",
+      "name": "auth.libpath",
+      "type": "java.lang.String"
+    },
+    {
+      "sourceType": "com.minivision.authplat2.config.AuthConfig",
+      "name": "auth.licpath",
+      "type": "java.lang.String"
+    },
+    {
+      "sourceType": "com.minivision.authplat2.config.AuthConfig",
+      "name": "auth.skip-urls",
+      "type": "java.lang.String"
+    }
+  ]
+}

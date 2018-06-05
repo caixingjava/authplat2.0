@@ -1,0 +1,66 @@
+env: test
+#env: prod
+#debug: true
+server:
+  #服务器配置
+  port: 8444
+  #port: 8445
+  address: 0.0.0.0
+  #HTTPS配置
+  ssl:
+    enabled: true
+    protocol: TLS
+    #key-store: classpath:keystore.p12
+    #key-alias: minivision
+    #key-password: minivision
+    #key-store-password: minivision
+    #key-store-type: PKCS12
+    key-store: classpath:xcx.minivision.com.cn.jks
+    key-alias: 1
+    #key-store-password: Minivision2016
+    key-store-password: 1H7lcpzhf9HDeDr
+    key-store-type: JKS
+#HTTP配置
+http:
+  port: 8089
+  #port: 8090
+spring:
+  application:
+    name: auth-plat-2.0
+  #视图层配置
+  thymeleaf.cache: false
+  resources.static-locations: 
+    - classpath:/META-INF/resources/
+    - classpath:/resources/
+    - classpath:/static/
+    - classpath:/public/
+  #数据层配置
+  jpa:
+    hibernate.ddl-auto: update
+  datasource:
+    #开发测试数据库
+    url: jdbc:mysql://192.168.123.12:3306/authplat2?characterEncoding=UTF-8&autoReconnect=true&useSSL=false
+    #基准测试数据库
+    #url: jdbc:mysql://192.168.123.219:3306/authplat2?characterEncoding=UTF-8&autoReconnect=true&useSSL=false
+    #客户测试数据库
+    #url: jdbc:mysql://118.31.114.240:3306/authplat2?characterEncoding=UTF-8&autoReconnect=true&useSSL=false
+    #生产数据库
+    #url: jdbc:mysql://118.31.114.202:3306/authplat2_prod?characterEncoding=UTF-8&autoReconnect=true&useSSL=false
+    username: root
+    password: root
+    #password: Auth_Plat_2.0
+
+#授权信息配置
+auth:
+  libpath: /deploy/authplat2
+  filepath: /deploy/authplat2/authfiles
+  licpath: /root/mini_licences/
+  skipUrls: /,/assets/**,/login,/test/**,/api/**,/manage/**
+
+info:
+  id: authplat2
+  version: 1.0.0
+file:
+  temp:
+    dir: /deploy/authplat2/temp
+    #dir: E:\temp
